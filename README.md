@@ -204,6 +204,8 @@ AWS networking fundamentals
 
 https://github.com/namitagrawal2001/terraform-strapi-aws-task4.git
 
+Loom video https://drive.google.com/file/d/16hEGGYXZgQRDaDmtEehUPHO8qYZuWVjC/view?usp=sharing
+
 👨‍💻 Author
 
 Namit Agrawal
