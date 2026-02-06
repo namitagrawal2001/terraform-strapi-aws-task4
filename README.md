@@ -1,45 +1,100 @@
-🚀 Strapi Deployment on AWS using Terraform (Private EC2 + ALB + Docker)
+🚀 Strapi Deployment on AWS using Terraform
+
+Private EC2 | ALB | Docker | Modular Infrastructure
+
 📌 Project Overview
 
-This project provisions a production-ready AWS infrastructure using Terraform.
+This project demonstrates a production-style deployment of a Dockerized Strapi application on AWS using Terraform.
 
-It includes:
+The architecture follows security best practices:
+
+EC2 deployed in a private subnet
+
+Public access handled via Application Load Balancer
+
+Outbound internet through NAT Gateway
+
+Infrastructure managed using modular Terraform structure
+
+Application containerized using Docker
+
+🏗 Architecture Design
+
+User (Internet)
+⬇
+Application Load Balancer (Public Subnets)
+⬇
+Target Group (Port 80)
+⬇
+Private EC2 Instance
+⬇
+Docker Container (Strapi running on port 1337 → mapped to 80)
+
+🧱 Infrastructure Components
+1️⃣ VPC Module
 
 Custom VPC
 
-Public and Private Subnets
+2 Public Subnets (Multi-AZ for ALB)
+
+1 Private Subnet (EC2)
 
 Internet Gateway
 
 NAT Gateway
 
-Private EC2 instance
+Public & Private Route Tables
 
-Application Load Balancer
+2️⃣ EC2 Module
 
-Security Groups
+Ubuntu-based EC2 instance (Private subnet)
+
+Security group allowing traffic only from ALB
+
+SSH key configuration
 
 Docker installation via user_data
 
-Strapi CMS running inside Docker
+Strapi container deployment
 
-Environment-specific configuration using tfvars
+3️⃣ ALB Module
 
-Strapi runs inside a private EC2 instance and is accessed through a public Application Load Balancer.
+Application Load Balancer (Public Subnets)
 
-🏗 Architecture
+Listener on Port 80
 
-User → ALB (Public Subnet) → Private EC2 → Docker → Strapi
+Target Group configured on Port 80
 
-ALB receives HTTP traffic on Port 80
+Health checks enabled
 
-Traffic forwarded to EC2 on Port 1337
+Target attachment to EC2 instance
 
-EC2 runs Strapi inside Docker
+🐳 Docker Configuration
 
-NAT Gateway provides outbound internet to private EC2
+Strapi runs inside Docker on EC2.
 
-📂 Project Structure
+Port Mapping:
+
+-p 80:1337
+
+
+Environment Variables Configured:
+
+HOST=0.0.0.0
+
+PORT=1337
+
+APP_KEYS
+
+API_TOKEN_SALT
+
+ADMIN_JWT_SECRET
+
+JWT_SECRET
+
+This ensures Strapi runs correctly in production mode.
+
+📁 Terraform Project Structure
 terraform-strapi/
 │
 ├── provider.tf
@@ -48,104 +103,106 @@ terraform-strapi/
 ├── outputs.tf
 ├── terraform.tfvars
 │
-├── modules/
-│   ├── vpc/
-│   ├── ec2/
-│   └── alb/
+└── modules/
+    ├── vpc/
+    ├── ec2/
+    └── alb/
 
-⚙️ Prerequisites
 
-AWS CLI configured
+Each module is reusable and follows clean infrastructure separation.
 
-Terraform installed
-
-IAM user with AdministratorAccess
-
-SSH key created and imported into AWS
-
-🔐 SSH Key Setup
-ssh-keygen -t rsa -b 2048 -f strapi-key
-
-aws ec2 import-key-pair \
-  --key-name strapi-key \
-  --public-key-material fileb://strapi-key.pub
-
-🚀 Deployment Steps
-1️⃣ Initialize Terraform
+⚙️ Deployment Steps
+Initialize Terraform
 terraform init
 
-2️⃣ Validate
-terraform validate
+Review Plan
+terraform plan
 
-3️⃣ Apply
+Apply Infrastructure
 terraform apply
 
 
-Type yes when prompted.
+Type:
 
-🌍 Access Application
-
-After deployment, the Application Load Balancer DNS generated:
-
-tf-lb-20260205102029882100000008-893997406.ap-south-1.elb.amazonaws.com
-
-🔗 Open Application
-http://tf-lb-20260205102029882100000008-893997406.ap-south-1.elb.amazonaws.com
-
-🔐 Strapi Admin Panel
-http://tf-lb-20260205102029882100000008-893997406.ap-south-1.elb.amazonaws.com/admin
-
-🐳 Docker Deployment
-
-Docker is installed automatically using user_data.sh.
-
-Strapi runs inside a Docker container on:
-
-Port 1337
+yes
 
 
-The ALB forwards traffic from port 80 to port 1337 on the private EC2 instance.
+Terraform provisions:
 
-🛠 Environment Configuration
+VPC
 
-All environment-specific values are managed using:
+Subnets
+
+NAT Gateway
+
+EC2
+
+ALB
+
+Target Group
+
+Security Groups
+
+🌐 Live Application
+
+Application URL:
+
+http://tf-lb-20260206053658739700000007-470505522.ap-south-1.elb.amazonaws.com
+
+Admin Panel:
+
+http://tf-lb-20260206053658739700000007-470505522.ap-south-1.elb.amazonaws.com/admin
+
+🔐 Security Implementation
+
+EC2 is not publicly accessible
+
+Only ALB exposes public endpoint
+
+Private subnet uses NAT Gateway for outbound internet
+
+Security groups restrict traffic flow
+
+Proper health checks ensure availability
+
+🛠 Debugging & Improvements Handled
+
+Fixed 502 Bad Gateway (Port mismatch between ALB and Docker)
+
+Updated Target Group from 1337 → 80
+
+Implemented create_before_destroy to avoid ALB dependency conflicts
+
+Added required Strapi production secrets
+
+Ensured Docker container restart policy
+
+📦 Environment Management
+
+Environment values are managed using:
 
 terraform.tfvars
 
 
-Configurable variables include:
+This allows easy switching between development and production configurations.
 
-region
+📚 Key Learnings
 
-instance_type
+Modular Terraform architecture
 
-VPC CIDR
+Private EC2 deployment pattern
 
-subnet CIDRs
+ALB health check debugging
 
-AMI ID
+Docker production configuration
 
-key_name
+Target group lifecycle handling
 
-🧹 Destroy Infrastructure
+AWS networking fundamentals
 
-To remove all resources:
+🔗 GitHub Repository
 
-terraform destroy
-
-✅ Outcome
-
-Infrastructure provisioned using Terraform modules
-
-Private EC2 securely deployed
-
-ALB configured for public access
-
-Dockerized Strapi running successfully
-
-Fully reproducible infrastructure
-
-Environment separation using tfvars
+https://github.com/namitagrawal2001/terraform-strapi-aws-task4.git
 
 👨‍💻 Author
 

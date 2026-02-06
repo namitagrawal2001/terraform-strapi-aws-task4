@@ -1,14 +1,14 @@
 #!/bin/bash
+
 apt update -y
-apt install -y docker.io
+apt install -y docker.io git
+
 systemctl start docker
 systemctl enable docker
 
-docker pull strapi/strapi
+cd /home/ubuntu
+git clone https://github.com/namitagrawal2001/strapi-local-setup.git
+cd strapi-local-setup
 
-docker run -d \
-  --name strapi \
-  -p 1337:1337 \
-  -e NODE_ENV=development \
-  --restart always \
-  strapi/strapi
+docker build -t strapi-app .
+docker run -d -p 80:1337 --name strapi strapi-app
